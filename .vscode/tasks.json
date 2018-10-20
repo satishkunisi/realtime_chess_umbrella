@@ -38,7 +38,7 @@
             "label": "Run Elixir Test File",
             "type": "shell",
             // if active filename contains _test, run it. otherwise run the last test run 
-            "command": "[[ \"(.+)_test.exs\" =~ \"${file}\" ]] && mix test ${relativeFile} || mix test `cat .vscode/.last-test-run.txt`",
+            "command": "[[ \"(.+)_test.exs\" =~ \"${file}\" ]] && mix test `echo $\'${relativeFile}\' | sed -e 's/apps\/realtime_chess\///g'`",
             "dependsOn": ["Save Test File"],
             "group": "test",
             "presentation": {

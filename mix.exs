@@ -15,6 +15,6 @@ defmodule RealtimeChessUmbrella.MixProject do
   #
   # Run "mix help deps" for examples and options.
   defp deps do
-    [{:realtime_chess_in_elixir, in_umbrella: true}]
+    []
   end
 end
