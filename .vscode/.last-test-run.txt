@@ -1,1 +1,1 @@
-apps/realtime_chess/test/game/registry_test.exs
+

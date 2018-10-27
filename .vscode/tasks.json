@@ -4,42 +4,9 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Save Test File",
+            "label": "Run Test Suite",
             "type": "shell",
-            // if active filename contains _test, write out to file. otherwise do nothing. 
-            "command": "[[ \"${file}\" =~ \"(.+)_test.exs\" ]] && echo \"${relativeFile}\" > .vscode/.last-test-run.txt || echo \"skipping save since not a test file\"",
-            "group": "test"
-        },
-        {
-            "label": "Save Test Line Number",
-            "type": "shell",
-            // if active filename contains _test, write out to file. otherwise do nothing. 
-            "command" : "[[ \"${file}\" =~ \"(.+)_test.exs\" ]] && echo \"${relativeFile}:${lineNumber}\" > .vscode/.last-test-run.txt || echo \"skipping save since not a test file\"",
-            "group": "test"
-        },
-        {
-            "label": "Clear Test Run",
-            "type": "shell",
-            "command": "echo \"\" > .vscode/.last-test-run.txt",
-            "group": "test"
-        },
-        {
-            "label": "Run Elixir Test Suite",
-            "type": "shell",
-            "command": "mix test",
-            "group": "test",
-            "dependsOn": ["Clear Test Run"],
-            "presentation": {
-                "reveal": "always",
-                "panel": "shared"
-            }
-        },
-        {
-            "label": "Run Elixir Test File",
-            "type": "shell",
-            // if active filename contains _test, run it. otherwise run the last test run 
-            "command": "[[ \"(.+)_test.exs\" =~ \"${file}\" ]] && mix test `echo $\'${relativeFile}\' | sed -e 's/apps\/realtime_chess\///g'`",
-            "dependsOn": ["Save Test File"],
+            "command": "elixir .vscode/mix_test_tasks.exs --scope suite",
             "group": "test",
             "presentation": {
                 "reveal": "always",
@@ -47,10 +14,9 @@
             }
         },
         {
-            "label": "Run Elixir Nearest Test",
+            "label": "Run Test File",
             "type": "shell",
-            "command": "[[ \"${file}\" =~ \"(.+)_test.exs\" ]] && mix test ${relativeFile}:${lineNumber} || mix test `cat .vscode/.last-test-run.txt`",
-            "dependsOn": ["Save Test Line Number"],
+            "command": "elixir .vscode/mix_test_tasks.exs --file-name ${relativeFile} --scope file --is-umbrella",
             "group": "test",
             "presentation": {
                 "reveal": "always",
@@ -58,9 +24,19 @@
             }
         },
         {
-            "label": "Run Elixir Last Test",
+            "label": "Run Nearest Test",
             "type": "shell",
-            "command": "mix test `cat .vscode/.last-test-run.txt`",
+            "command": "elixir .vscode/mix_test_tasks.exs --file-name ${relativeFile} --line-number ${lineNumber} --scope nearest --is-umbrella",
+            "group": "test",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Run Last Test",
+            "type": "shell",
+            "command": "elixir .vscode/mix_test_tasks.exs --scope last --is-umbrella",
             "group": "test",
             "presentation": {
                 "reveal": "always",

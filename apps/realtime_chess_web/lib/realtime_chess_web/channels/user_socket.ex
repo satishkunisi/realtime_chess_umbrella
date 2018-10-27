@@ -3,6 +3,7 @@ defmodule RealtimeChessWeb.UserSocket do
 
   ## Channels
   # channel "room:*", RealtimeChessWeb.RoomChannel
+  channel "game:*", RealtimeChessWeb.GameChannel
 
   ## Transports
   transport :websocket, Phoenix.Transports.WebSocket
