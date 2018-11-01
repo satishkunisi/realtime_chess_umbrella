@@ -10,6 +10,7 @@ defmodule RealtimeChess.Game.RegistryTest do
     {:ok, game} = Agent.start_link(fn -> [] end)
     Registry.create(game, "testname")
 
-    assert {:ok, game} = Registry.lookup("testname")
+    game = Registry.lookup("testname")
+    assert is_pid(game)
   end
 end

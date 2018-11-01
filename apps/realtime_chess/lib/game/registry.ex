@@ -1,10 +1,10 @@
 defmodule RealtimeChess.Game.Registry do
   use GenServer
 
-  @spec register_game(pid(), String.t()) :: :ok
+  @spec register_game(pid(), String.t()) :: {:ok, String.t()} | {:error, any()}
   def register_game(game_pid, name) do
-    registered_name = GenServer.call(__MODULE__, {:create, game_pid, name})
-    {:ok, registered_name}
+     GenServer.call(__MODULE__, {:create, game_pid, name})
+     {:ok, name}
   end
 
   @spec start_link(list(atom)) :: any
@@ -12,9 +12,12 @@ defmodule RealtimeChess.Game.Registry do
     GenServer.start_link(__MODULE__, :ok, opts)
   end
 
-  @spec lookup(String.t) :: pid()
+  @spec lookup(String.t) :: pid() | :error
   def lookup(name) do
-    GenServer.call(__MODULE__, {:lookup, name})
+    case GenServer.call(__MODULE__, {:lookup, name}) do
+      {:ok, game_pid} -> game_pid
+      :error -> :error
+    end
   end
 
   @spec create(game :: pid, name :: String.t) :: tuple | atom

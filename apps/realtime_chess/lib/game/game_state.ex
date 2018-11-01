@@ -2,21 +2,52 @@ defmodule RealtimeChess.Game.GameState do
   alias RealtimeChess.Game
   alias RealtimeChess.Game.Board
   alias RealtimeChess.Game.Piece
+  alias RealtimeChess.Game.Registry
 
-  @type game_option() :: {:name, String.t()} | {:board, Board.t()} | {:status, game_status()}
+  @type game_option() :: {:name, String.t()} | {:board, Board.t()} | {:status, game_status()} | {:player_white, player} | {:player_black, player}
   @type game_options() :: [game_option()]
+  @type player() :: String.t() | nil
 
   @typep board :: Board.t
   @typep position :: Piece.position()
   @typep pieces :: Piece.pieces()
   @typep board_piece :: Piece.board_piece()
   @typep game_status() :: :started | :white | :black | :white_checkmated | :black_checkmated | :draw
+  @type game_id() :: String.t() | pid()
 
   use GenServer
 
   @spec initialize_board(Game.t) :: Game.t
   def initialize_board(game_state) do
     %Game{game_state | board: Board.populate_board()}
+  end
+
+  @spec assign_player(game_id(), String.t(), Board.color()) :: {:ok, Game.t} | {:error, String.t()}
+  def assign_player(game_id, player, target_color \\ nil) do
+    with {:ok, game_state} <- fetch(game_id),
+      {:ok, :started} <- Map.fetch(game_state, :status),
+      {:ok, player_color} <- open_color(target_color, game_state.player_white, game_state.player_black)
+    do
+      game_state.name
+      |> Registry.lookup()
+      |> GenServer.call({:assign_player, player_color, player})
+    else
+      {:error, _state_fetch_failure} -> {:error, "no Game with that id"}
+      {:ok, _game_began} -> {:error, "can't assign player to game that has begun"}
+      {:error, "no open color"} -> {:error, "no player position available"}
+    end
+  end
+
+  @spec start(pid()) :: {:ok, Game.t} | {:error, String.t()}
+  def start(game_id) when is_pid(game_id) do
+    GenServer.call(game_id, :start)
+  end
+
+  @spec start(String.t()) :: {:ok, Game.t} | {:error, String.t()}
+  def start(game_id)  when is_binary(game_id) do
+    game_id
+    |> Registry.lookup()
+    |> GenServer.call(:start)
   end
 
   @spec update_name(Game.t, String.t) :: Game.t
@@ -29,20 +60,29 @@ defmodule RealtimeChess.Game.GameState do
     name = Keyword.get(options, :name, random_string(10))
     board = Keyword.get(options, :board, Board.populate_board())
     status = Keyword.get(options, :status, :started)
-    game =  %Game{name: name, board: board, status: status}
+    player_white = Keyword.get(options, :player_white, nil)
+    player_black = Keyword.get(options, :player_black, nil)
+
+    game = %Game{
+      name: name,
+      board: board,
+      status: status,
+      player_white: player_white,
+      player_black: player_black
+    }
 
     {:ok, game_pid} = GenServer.start_link(__MODULE__, game)
-    {:ok, _registered_name} = RealtimeChess.Game.Registry.register_game(name, game_pid)
+    {:ok, _registered_name} = RealtimeChess.Game.Registry.register_game(game_pid, name)
 
     {:ok, game_pid}
   end
 
-  @spec fetch(pid()) :: Game.t
+  @spec fetch(pid()) :: {:ok, Game.t} | {:error, GenServer.reason()}
   def fetch(pid) when is_pid(pid) do
     GenServer.call(pid, :get_state)
   end
 
-  @spec fetch(String.t) :: Game.t
+  @spec fetch(String.t()) :: {:ok, Game.t} | {:error, GenServer.reason()}
   def fetch(name) when is_binary(name) do
     pid = RealtimeChess.Game.Registry.lookup(name)
     GenServer.call(pid, :get_state)
@@ -77,6 +117,18 @@ defmodule RealtimeChess.Game.GameState do
       _ ->
         {:stop, {:error, "game not in progress"}, "game not in progress", game}
     end
+  end
+
+  @impl true
+  def handle_call(:start, _from, game) do
+    new_game = Map.put(game, :status, :white)
+    {:reply, {:ok, new_game}, new_game}
+  end
+
+  @impl true
+  def handle_call({:assign_player, player_color, player}, _from, game) do
+    new_game = Map.put(game, player_color, player)
+    {:reply, {:ok, new_game}, new_game}
   end
 
   @impl true
@@ -129,6 +181,15 @@ defmodule RealtimeChess.Game.GameState do
   @spec surrounding_pieces(board, position) :: pieces()
   def surrounding_pieces(board, piece_position) do
     surrounding_pieces(board, piece_position, 1, @default_deltas)
+  end
+
+
+  defp open_color(target_color, player_white, player_black) do
+    cond do
+      is_nil(player_white) && (target_color == :white || is_nil(target_color)) -> {:ok, :player_white}
+      is_nil(player_black) && (target_color == :black || is_nil(target_color)) -> {:ok, :player_black}
+      true -> {:error, "color not open"}
+    end
   end
 
   @spec surrounding_pieces(board, position, integer, map) :: pieces()

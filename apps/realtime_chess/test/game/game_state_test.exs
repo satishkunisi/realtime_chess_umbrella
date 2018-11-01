@@ -8,12 +8,40 @@ defmodule RealtimeChess.Game.GameStateTest do
     with {:ok, game_pid} <- GameState.create(name: "testgame"),
          {:ok, game_state} <- GameState.fetch(game_pid)
     do
-          %{game_state: game_state}
+          %{game_state: game_state, game_pid: game_pid}
     end
   end
 
   test "game has a name", %{game_state: game_state} do
     assert Map.get(game_state, :name) == "testgame"
+  end
+
+  describe ".assign_player" do
+    test "returns an error tuple when game has already begun" do
+      {:ok, game_pid} = GameState.create(name: "testgame1")
+      {:ok, _game_state} = GameState.start(game_pid)
+
+      assert {:error, "can't assign player to game that has begun"} = GameState.assign_player(game_pid, "someuser")
+    end
+
+    test "it assigns player to color automatically if color is nil and position available" do
+      {:ok, game_pid} = GameState.create(name: "testgame2")
+
+      assert {:ok, %Game{} = _game_state} = GameState.assign_player(game_pid, "someuser")
+      assert {:ok, %Game{} = game_state} = GameState.assign_player(game_pid, "someotheruser")
+
+      assert game_state.player_white == "someuser"
+      assert game_state.player_black == "someotheruser"
+    end
+
+    test "returns an error tuple when there's no open player position" do
+      {:ok, game_pid} = GameState.create(name: "testgame3")
+
+      GameState.assign_player(game_pid, "someuser")
+      GameState.assign_player(game_pid, "someotheruser")
+
+      assert {:error, _error_msg} = GameState.assign_player(game_pid, "someuser")
+    end
   end
 
   test "initializes board", %{game_state: game_state} do
