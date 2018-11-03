@@ -17,6 +17,7 @@ defmodule RealtimeChessWeb.Router do
     pipe_through :browser # Use the default browser stack
 
     get "/", PageController, :index
+    get "/games/:id", GameController, :show
   end
 
   # Other scopes may use custom stacks.

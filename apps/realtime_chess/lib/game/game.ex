@@ -15,5 +15,29 @@ defmodule RealtimeChess.Game do
   def add_player(game_name, new_player, color \\ nil) do
     GameState.assign_player(game_name, new_player, color)
   end
+
+  @spec for_json(t) :: map()
+  def for_json(game) do
+    board = Enum.map(game.board, fn {num, row} ->
+      new_row = row
+        |> Enum.map(fn {col, pos} ->
+          {col, tuple_to_list(pos)}
+        end)
+        |> Enum.into(%{})
+      {num, new_row}
+    end)
+    |> Enum.into(%{})
+
+    Map.put(game, :board, board)
+  end
+
+  @spec tuple_to_list(any()) :: any()
+  def tuple_to_list(item) do
+    if is_tuple(item) do
+      [elem(item, 0), elem(item, 1)]
+    else
+      item
+    end
+  end
 end
 

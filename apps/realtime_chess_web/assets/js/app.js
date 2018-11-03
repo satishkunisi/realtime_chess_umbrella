@@ -18,4 +18,19 @@ import "phoenix_html"
 // Local files can be imported directly using relative
 // paths "./socket" or full ones "web/static/js/socket".
 
-// import socket from "./socket"
+import { createGame } from "./socket"
+
+let username = null;
+let channel = null;
+
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.querySelector("#create-game-form");
+
+  if (form) {
+    form.querySelector('#create-game-form-submit').addEventListener("click", e => {
+      e.preventDefault();
+      username = form.querySelector('#username').value; 
+      channel = createGame(username);
+    })
+  }
+})
