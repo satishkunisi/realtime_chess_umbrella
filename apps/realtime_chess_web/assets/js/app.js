@@ -23,7 +23,13 @@ import { createGame } from "./socket"
 let username = null;
 let channel = null;
 
+const pieceDragListener = (event) => {
+  event.dataTransfer.set('text/plain', 'This text may be dragged');  
+} 
+
 document.addEventListener("DOMContentLoaded", () => {
+  const gameName = document.querySelector("[data-game-id]").dataset.gameId;
+
   const form = document.querySelector("#create-game-form");
 
   if (form) {
@@ -33,4 +39,10 @@ document.addEventListener("DOMContentLoaded", () => {
       channel = createGame(username);
     })
   }
+
+  const pieces = [...document.querySelectorAll('[data-piece]')]
+
+  pieces.forEach(piece => {
+    piece.addEventListener('ondragstart', pieceDragListener)
+  })
 })

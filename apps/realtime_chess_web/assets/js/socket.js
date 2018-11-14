@@ -30,6 +30,7 @@ const createGame = (username) => {
 const loadGame = (game) => {
   const channel = socket.channel(`game:${game.name}`, { username: game.username });
   channel.join();
+  channel.on("drag_piece")
   return channel;
 }
 
@@ -37,6 +38,11 @@ const joinGame = (loadedChannel, username, color) => {
   loadedChannel
     .push("join_game", { username: username, color: color })
     .on("ok", Game.setCurrent)
+}
+
+const dragPiece = (loadedChannel, color) => {
+  loadedChannel
+    .push("drag_piece", { color: color })
 }
 
 export { socket, createGame, loadGame, joinGame }

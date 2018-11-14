@@ -1,0 +1,21 @@
+body {
+  border: 10px solid red;
+}
+
+#board {
+  width: 100%;
+}
+
+.board-row {
+  width: 20px;
+}
+
+.board-col {
+  border: 10px solid red;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  div:nth-child(2n) {
+    background-color: black;
+  }
+}
