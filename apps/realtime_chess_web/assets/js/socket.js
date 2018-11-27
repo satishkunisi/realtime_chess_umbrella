@@ -27,10 +27,10 @@ const createGame = (username) => {
   return channel;
 }
 
-const loadGame = (game) => {
-  const channel = socket.channel(`game:${game.name}`, { username: game.username });
+const loadGame = (gameName, username) => {
+  const channel = socket(username).channel(`game:${gameName}`, {body: { username: username }});
   channel.join();
-  channel.on("drag_piece")
+  channel.on("receive_drag_piece", onReceiveDragPiece)
   return channel;
 }
 
@@ -40,9 +40,19 @@ const joinGame = (loadedChannel, username, color) => {
     .on("ok", Game.setCurrent)
 }
 
-const dragPiece = (loadedChannel, color) => {
-  loadedChannel
-    .push("drag_piece", { color: color })
+const onReceiveDragPiece = (body) => {
+  // find piece by data-col, data-row
+  // update piece style translate(x, y)
+
+  const { elem, dx, dy } = body 
+  document
+    .querySelector(`[data-col="${elem['data-col']}"][data-row="${elem['data-row']}"]`)
+    .setAttribute("style", `transform: translate(${dx}px, ${dy}px)`)
 }
 
-export { socket, createGame, loadGame, joinGame }
+const sendDragPiece = (loadedChannel, attrs) => {
+  loadedChannel
+    .push("send_drag_piece", {body: attrs})
+}
+
+export { socket, createGame, loadGame, joinGame, sendDragPiece }

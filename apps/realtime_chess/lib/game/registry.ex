@@ -9,6 +9,7 @@ defmodule RealtimeChess.Game.Registry do
 
   @spec start_link(list(atom)) :: any
   def start_link(opts) do
+    IO.puts("starting registry...")
     GenServer.start_link(__MODULE__, :ok, opts)
   end
 

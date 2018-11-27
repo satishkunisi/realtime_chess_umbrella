@@ -6,9 +6,17 @@ defmodule RealtimeChessWeb.GameChannel do
     {:ok, socket}
   end
 
-  def join("game:" <> game_name, %{username: username}, socket) do
+  def join("game:" <> game_name, %{"body" => %{"username" => username}}, socket) do
     Game.add_player(game_name, username)
     {:ok, socket}
+  end
+
+  def handle_in("send_piece_drag", %{"body" => body}, socket) do
+    push(
+      socket,
+      "receive_drag_piece",
+      body
+    )
   end
 
   def handle_info({:after_join_lobby, username}, socket) do

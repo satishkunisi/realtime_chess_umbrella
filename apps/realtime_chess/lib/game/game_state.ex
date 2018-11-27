@@ -71,7 +71,7 @@ defmodule RealtimeChess.Game.GameState do
       player_black: player_black
     }
 
-    {:ok, game_pid} = GenServer.start_link(__MODULE__, game)
+    {:ok, game_pid} = RealtimeChess.Game.Supervisor.create_game(game)
     {:ok, _registered_name} = RealtimeChess.Game.Registry.register_game(game_pid, name)
 
     {:ok, game_pid}
@@ -86,6 +86,11 @@ defmodule RealtimeChess.Game.GameState do
   def fetch(name) when is_binary(name) do
     pid = RealtimeChess.Game.Registry.lookup(name)
     GenServer.call(pid, :get_state)
+  end
+
+  @spec start_link(Game.t) :: GenServer.on_start()
+  def start_link(default) do
+    GenServer.start_link(__MODULE__, default)
   end
 
   # GenServer Callbacks

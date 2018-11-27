@@ -106,7 +106,7 @@
         <div class="board-row">
           <%= for col <- range do %>
             <div class="board-col" id="<%= row %><%= col %>">
-              <span data-piece draggable="true">
+              <span data-piece draggable="true" data-row="<%= row %>" data-col="<%= col %>" class="piece">
                 <%= stubbed_board[row][col] %>
               </span>
             </div> 

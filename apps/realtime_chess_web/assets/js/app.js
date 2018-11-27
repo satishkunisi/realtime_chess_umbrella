@@ -18,31 +18,48 @@ import "phoenix_html"
 // Local files can be imported directly using relative
 // paths "./socket" or full ones "web/static/js/socket".
 
-import { createGame } from "./socket"
+import * as Socket from "./socket"
 
 let username = null;
 let channel = null;
 
+const getPieceAttributes = (event) => {
+  return { 
+    dx: event.offsetX,
+    dy: event.offsetY,
+    elem: { 
+      "data-col": event.target.dataset.col,
+      "data-row": event.target.dataset.row 
+    }
+  }
+}
+
 const pieceDragListener = (event) => {
-  event.dataTransfer.set('text/plain', 'This text may be dragged');  
+  const attrs = getPieceAttributes(event)
+  Socket.sendDragPiece(channel, attrs);
 } 
 
 document.addEventListener("DOMContentLoaded", () => {
-  const gameName = document.querySelector("[data-game-id]").dataset.gameId;
+  const meta = document.querySelector("[data-game-id]")
+  const gameName = meta && meta.dataset.gameId;
 
   const form = document.querySelector("#create-game-form");
+
+  if (gameName) {
+    channel = Socket.loadGame(gameName, "username1")
+  }
 
   if (form) {
     form.querySelector('#create-game-form-submit').addEventListener("click", e => {
       e.preventDefault();
       username = form.querySelector('#username').value; 
-      channel = createGame(username);
+      channel = Socket.createGame(username);
     })
   }
 
   const pieces = [...document.querySelectorAll('[data-piece]')]
 
   pieces.forEach(piece => {
-    piece.addEventListener('ondragstart', pieceDragListener)
+    piece.addEventListener('drag', pieceDragListener)
   })
 })

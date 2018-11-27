@@ -1,21 +1,26 @@
-body {
-  border: 10px solid red;
-}
-
 #board {
   width: 100%;
+  font-size: 50px;
 }
 
 .board-row {
-  width: 20px;
 }
 
 .board-col {
-  border: 10px solid red;
   display: inline-block;
-  width: 20px;
-  height: 20px;
-  div:nth-child(2n) {
-    background-color: black;
-  }
+  width: 70px;
+  height: 70px;
+  text-align: center;
+}
+
+.piece {
+  display: block;
+}
+
+#board div:nth-child(odd) div:nth-child(odd) {
+  background-color: rgba(1,1,1,0.5);
+}
+
+#board div:nth-child(even) div:nth-child(even) {
+  background-color: rgba(1,1,1,0.5);
 }
